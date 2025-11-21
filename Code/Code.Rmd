@@ -1,0 +1,24 @@
+---
+title: "1st _ Draft"
+output: html_document
+date: "2025-11-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Preamble
+```{r}
+library(tidyverse)
+```
+
+#Table 1 
+
+
+
+```{r}
+household<- read_csv("C:\Users\aadil\Documents\GitHub\AFRE_Project_Rahman")
+```
+
