@@ -12,13 +12,101 @@ knitr::opts_chunk$set(echo = TRUE)
 Preamble
 ```{r}
 library(tidyverse)
+household<- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_household_puf.csv")
+Individual<- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_individual_puf.csv")
+fahNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fahnutrients.csv")
+FafHNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhnutrient_puf.csv")
 ```
 
 #Table 1 
+## Table 1. Summary Statistics
+### To construct the mean values that are seen in the Courmacnhe et al paper i ahve attached the table with all the variables listed out 
 
+| Variable | Mean | Std. Error |
+|---------|------|------------|
+| **SNAP participation** |  |  |
+| Self-reported (REPORT) |  |  |
+| Administrative caseload (ADMIN) |  |  |
+| Administrative EBT (ALERT) |  |  |
+| **Dependent variables** |  |  |
+| Low food security |  |  |
+| Very low food security |  |  |
+| Total 2010 HEI score |  |  |
+| Body mass index |  |  |
+| Obese |  |  |
+| Severely obese |  |  |
+| **Control variables** |  |  |
+| Age (years) |  |  |
+| Female |  |  |
+| Black |  |  |
+| White |  |  |
+| Other race |  |  |
+| Married |  |  |
+| Formerly married |  |  |
+| Household size |  |  |
+| Number of children |  |  |
+| Rural tract |  |  |
+| Less than high school |  |  |
+| High school graduate |  |  |
+| Some college |  |  |
+| College degree or higher |  |  |
+| Worked last week |  |  |
+| Gross monthly income (\$1000s) |  |  |
+| Child < 5 in HH |  |  |
+| Elderly ≥ 65 in HH |  |  |
+| Never married |  |  |
+| Miles to primary food store |  |  |
+| Primary store SNAP-authorized |  |  |
+
+**Notes:** Statistics are from the main analysis sample of 2,108 observations. Weighted using FoodAPS complex design.
 
 
 ```{r}
-household<- read_csv("C:\Users\aadil\Documents\GitHub\AFRE_Project_Rahman")
+colnames(household)
 ```
+
+```{r}
+# Extracting the Columns to construct Table one
+household_1 <- household %>%
+  select(
+    # Primary Key
+    hhnum,
+    # SNAP participation
+    snapnowreport,
+    snapnowadmin,
+    snapnowhh,
+    matchconsenthh,
+    # Dependent variables
+    adltfsraw, # May need to remove
+    adltfscat,
+    # Controls
+    hhsize,
+    rural,
+    inchhavg_r,
+    primstoredist_d,
+    primstoresnaptype,
+  )
+
+```
+
+```{r}
+Individual_1 <- Individual %>%
+  select(
+    #Primary Key
+    HHNUM,
+    #DEPENDENT vARIABKE
+    BMI,
+    #cONTROLS
+    SEX,
+    RACECAT_R,
+    MARITAL,
+    EMPLOYMENT,
+    EDUCCAT,
+    AGE_R,
+    EMPLOYMENT)
+```
+
+
+# Construct The HEI
+
 
