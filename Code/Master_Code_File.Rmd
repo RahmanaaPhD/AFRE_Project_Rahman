@@ -744,11 +744,19 @@ p <- stargazer(weighted_pct_df, type = "text", summary = FALSE, rownames = FALSE
 ```
 
 ```{r}
+
+
+Table3_sample <- Table_2_data_frame %>%
+  mutate(
+    snapnowadmin = ifelse(snapnowadmin %in% c(-996), NA, snapnowadmin),
+    snapnowhh = ifelse(snapnowhh %in% c(-997), NA, snapnowhh)
+  )
+
 # Weighted participation rate using SNAP_ADMIN
-admin_rate <- svymean(~ SNAP_ADMIN, design = design_t2, na.rm = TRUE) * 100
+admin_rate <- svymean(~ snapnowadmin, design = design_t2, na.rm = TRUE) * 100
 
 # Weighted participation rate using SNAP_HH (EBT/ALERT)
-ebt_rate <- svymean(~ SNAP_HH, design = design_t2, na.rm = TRUE) * 100
+ebt_rate <- svymean(~ snapnowhh, design = design_t2, na.rm = TRUE) * 100
 
 # Combine into a data frame for Table 3
 Table3_summary <- data.frame(
@@ -758,6 +766,9 @@ Table3_summary <- data.frame(
 ```
 
 
+```{r}
+stargazer(Table3_summary, type = "text", summary = FALSE, rownames = FALSE)
+```
 
 
 
