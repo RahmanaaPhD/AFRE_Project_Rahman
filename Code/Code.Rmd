@@ -15,7 +15,9 @@ library(tidyverse)
 household<- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_household_puf.csv")
 Individual<- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_individual_puf.csv")
 fahNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fahnutrients.csv")
-FafHNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhnutrient_puf.csv")
+fafHNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhnutrient_puf.csv")
+faps_fahitem <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fahitem_puf.csv")
+faps_fafhitem <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhitem_puf.csv")
 ```
 
 #Table 1 
@@ -107,6 +109,249 @@ Individual_1 <- Individual %>%
 ```
 
 
+```{r}
+Individual_1 <- Individual_1 %>%
+  rename(hhnum = HHNUM)
+```
+
+
+```{r}
+Table_1_data_frame <- household_1 %>%
+  left_join(Individual_1, by = "hhnum")
+```
+
+```{r}
+Table_1_data_frame <- Table_1_data_frame %>% 
+  mutate(
+    Obese = ifelse(BMI >= 30, 1, 0),
+    Severely_Obese = ifelse(BMI >= 35, 1, 0),
+    # Create a self-reported SNAP variable:
+    # Keep values 0 (No) and 1 (Yes); set all other codes (e.g., -997, -998) to NA
+    SNAP_REPORT = ifelse(snapnowreport %in% c(0,1), snapnowreport, NA),
+    # Create an administrative SNAP variable:
+    # Keep values 0 (No) and 1 (Yes); set all other codes (e.g., 2, -996) to NA
+    SNAP_ADMIN = ifelse(snapnowadmin %in% c(0,1), snapnowadmin, NA),
+    # Create a combined household SNAP variable:
+    # Keep values 0 (No) and 1 (Yes); set all other codes to NA
+    SNAP_HH = ifelse(snapnowhh %in% c(0,1), snapnowhh, NA),
+    foodsec_lowvlow = factor(
+      adltfscat %in% c(3, 4),
+      levels = c(FALSE, TRUE),
+      labels = c("Low food security", "Very low food security")
+    )
+  )
+
+    
+  )
+```
+
+```{r}
+colnames(Table_1_data_frame)
+```
+
+```{r}
+colnames(Table_1_data_frame$snapnowreport)
+
+```
+
+
+
 # Construct The HEI
 
+The Healthy Eating Index is a widely used measure of overall dietary quality, designed to align with the 2010 Dietary Guidelines for Americans. Because FoodAPS provides individual food-level nutrient data for foods acquired at home (FAH) and away from home (FAFH), the HEI must be reconstructed manually through a multi-step process. Below, I describe each stage of the workflow and the reasoning behind it.
+
+
+### Merge FAH and FAFH nutrient files with item-level gram weights
+
+
+```{r}
+fah_item_hei <- faps_fahitem
+Fafh_item_hei <- faps_fafhitem
+fah_nutrient_hei <- fahNutrient
+fafh_nutrient_hei <- fafHNutrient
+
+```
+
+####Fah
+```{r}
+fah_item_hei <- fah_item_hei %>%
+  mutate(
+    grams_edible = coalesce(
+      "totgramsedible",
+      "totgramsedibleimp",
+      "totgramsunadj",
+      "totgramsunadjimp"
+    )
+  )
+
+```
+
+```{r}
+fah_nutrient_hei <- fah_nutrient_hei %>%
+  mutate(
+    grams_edible = coalesce(
+      "totgramsedible",
+      "totgramsedibleimp",
+      "totgramsunadj",
+      "totgramsunadjimp"
+    )
+  )
+
+```
+
+
+```{r}
+fah_full_hei <- fah_nutrient_hei %>%
+  left_join(fah_item_hei, by = c("hhnum","eventid","itemnum"))
+```
+
+
+####Fafh
+```{r}
+Fafh_item_hei <- Fafh_item_hei %>%
+  mutate(
+    grams_edible = coalesce(
+      "totgramsedible",
+      "totgramsedibleimp",
+      "totgramsunadj",
+      "totgramsunadjimp"
+    )
+  )
+
+```
+
+```{r}
+fafh_nutrient_hei <- fafh_nutrient_hei %>%
+  mutate(
+    grams_edible = coalesce(
+      "totgramsedible",
+      "totgramsedibleimp",
+      "totgramsunadj",
+      "totgramsunadjimp"
+    )
+  )
+
+```
+
+```{r}
+fafh_full_hei <- fafh_nutrient_hei %>%
+  left_join(Fafh_item_hei, by = c("hhnum","eventid","itemnum"))
+```
+
+
+
+#####Combine
+```{r}
+HEI_ALL <- bind_rows(
+  fah_full_hei %>% mutate(source = "FAH"),
+  fafh_full_hei %>% mutate(source = "FAFH")
+)
+```
+
+HEI_next
+
+```{r}
+HEI_ALL <- HEI_ALL %>%
+  group_by(hhnum) %>%
+  summarise(
+    energy     = sum(energy, na.rm = TRUE),
+
+    # Dairy
+    d_total    = sum(d_total, na.rm = TRUE),
+
+    # Fruits
+    f_total    = sum(f_total, na.rm = TRUE),
+    f_whole    = sum(f_other, na.rm = TRUE),
+    f_juice    = sum(f_juice, na.rm = TRUE),
+
+    # Vegetables
+    v_total    = sum(v_total, na.rm = TRUE),
+    v_dark     = sum(v_drkgr, na.rm = TRUE),
+    v_legumes  = sum(v_legumes, na.rm = TRUE),
+
+    # Grains
+    g_whole    = sum(g_whole, na.rm = TRUE),
+    g_refined  = sum(g_refined, na.rm = TRUE),
+
+    # Proteins
+    pf_total   = sum(pf_total, na.rm = TRUE),
+    pf_plant   = sum(pf_soy + pf_nutsds + pf_legumes, na.rm = TRUE),
+    pf_seafood = sum(pf_seafd_hi + pf_seafd_low, na.rm = TRUE),
+
+    # Fatty acids
+    satfat     = sum(satfat, na.rm = TRUE),
+    monofat    = sum(monofat, na.rm = TRUE),
+    polyfat    = sum(polyfat, na.rm = TRUE),
+
+    # Sodium / empty calories
+    sodium     = sum(sodium, na.rm = TRUE),
+    solid_fats = sum(solid_fats, na.rm = TRUE),
+    add_sugars = sum(add_sugars, na.rm = TRUE)
+  )
+
+```
+
+
+```{r}
+hei_components <- HEI_ALL %>%
+  mutate(
+    kcal1000 = energy / 1000,
+
+    # HEI-2010 per 1000 kcal components
+    fruit_total     = f_total / kcal1000,
+    fruit_whole     = f_whole / kcal1000,
+    veg_total       = v_total / kcal1000,
+    greens_beans    = (v_dark + v_legumes) / kcal1000,
+
+    whole_grains    = g_whole / kcal1000,
+    dairy_comp      = d_total / kcal1000,
+
+    protein_total   = pf_total / kcal1000,
+    seaplant        = (pf_plant + pf_seafood) / kcal1000,
+
+    fatty_acid_ratio = (monofat + polyfat) / satfat,
+
+    # Moderation (lower = better)
+    sodium_kcal      = sodium / kcal1000,
+    refined_grains   = g_refined / kcal1000,
+
+    # Empty calories (percentage of total kcal)
+    pct_empty = 100 * (
+      solid_fats*9 + add_sugars*4
+    ) / energy
+  )
+
+```
+
+```{r}
+hei_scores <- hei_components %>%
+  mutate(
+
+    # Adequacy (higher is better)
+    score_totfruit     = pmin(5,  fruit_total     / 0.8),
+    score_wholefruit   = pmin(5,  fruit_whole     / 0.4),
+    score_totalveg     = pmin(5,  veg_total       / 1.1),
+    score_greensbeans  = pmin(5,  greens_beans    / 0.2),
+
+    score_wholegrains  = pmin(10, whole_grains    / 1.5),
+    score_dairy        = pmin(10, dairy_comp      / 1.3),
+
+    score_protein      = pmin(5,  protein_total   / 2.5),
+    score_seaplant     = pmin(5,  seaplant        / 0.8),
+
+    # Fatty acid ratio
+    score_fattyacid    = pmin(10, fatty_acid_ratio / 2.5),
+
+    # Moderation (reverse scoring)
+    score_sodium  = pmax(0, 10 * ( (2.0 - sodium_kcal) / (2.0 - 1.1) )),
+    score_refined = pmax(0, 10 * ( (4.3 - refined_grains) / (4.3 - 1.8) )),
+
+    # Empty calories % of total
+    score_empty   = pmax(0, 20 * ( (50 - pct_empty) / (50 - 19) )),
+
+    # Total HEI score (0 to 100)
+    hei_total = rowSums(across(starts_with("score_")))
+  )
+
+```
 
