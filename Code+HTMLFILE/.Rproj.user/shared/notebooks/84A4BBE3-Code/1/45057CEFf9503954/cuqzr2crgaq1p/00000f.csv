@@ -1,0 +1,7 @@
+"0","library(tidyverse)"
+"0","household<- read_csv(""~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_household_puf.csv"")"
+"0","Individual<- read_csv(""~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_individual_puf.csv"")"
+"0","fahNutrient <- read_csv(""~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fahnutrients.csv"")"
+"0","FafHNutrient <- read_csv(""~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhnutrient_puf.csv"""
+"2","Error: Incomplete expression: FafHNutrient <- read_csv(""~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhnutrient_puf.csv""
+"
