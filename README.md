@@ -5,12 +5,13 @@ This project replicates the core analyses from Courtemanche et al. (2019) using 
 Original study: Courtemanche et al. (2019), Southern Economic Journal
 DOI: https://onlinelibrary.wiley.com/doi/10.1002/soej.12364
 
-Key Limitations
+Key Limitations:
+<ol>
+<li>Administrative match-quality variables are unavailable in the PUF.</li>
 
-Administrative match-quality variables are unavailable in the PUF.
+<li>HEI-2010 scores are reconstructed, introducing measurement error.</li>
 
-HEI-2010 scores are reconstructed, introducing measurement error.
+<li>SNAP administrative nonparticipation and match failures cannot be distinguished.</li>
 
-SNAP administrative nonparticipation and match failures cannot be distinguished.
-
-Some tables (5, 6 & 9) cannot be replicated.
+<li>Some tables (5, 6 & 9) cannot be replicated.</li>
+</ol>
