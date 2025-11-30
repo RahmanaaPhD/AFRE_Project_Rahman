@@ -1,7 +1,6 @@
 ---
 title: "AFRE 891 - Project Replication"
 date: "2025-11-30"
-author: "Aadil Rahman"
 output:
   html_document:
     theme: "journal"
@@ -23,16 +22,13 @@ library(modelsummary)
 
 ```{r include=FALSE}
 #Files Needed:
-household<- read_csv("../Raw_Data/faps_household_puf.csv")
-Individual<- read_csv("../Raw_Data/faps_individual_puf.csv")
-fahNutrient <- read_csv("../Raw_Data/faps_fahnutrients.csv")
-fafHNutrient <- read_csv("../Raw_Data/faps_fafhnutrient_puf.csv")
-faps_fahitem <- read_csv("../Raw_Data/faps_fahitem_puf.csv")
-faps_fafhitem <- read_csv("../Raw_Data/faps_fafhitem_puf.csv")
+household<- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_household_puf.csv")
+Individual<- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_individual_puf.csv")
+fahNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fahnutrients.csv")
+fafHNutrient <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhnutrient_puf.csv")
+faps_fahitem <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fahitem_puf.csv")
+faps_fafhitem <- read_csv("~/GitHub/AFRE_Project_Rahman/Raw_Data/faps_fafhitem_puf.csv")
 ```
-
-# This project replicates the main analyses of Courtemanche et al. (2019) using the public-use FoodAPS data.
- https://onlinelibrary.wiley.com/doi/10.1002/soej.12364
 
 # Table 1: Data Preparation and Variable Reconstruction
 
@@ -76,7 +72,7 @@ Individual_1 <- Individual %>%
 
 ## Table Construction and Handling Missing and Masked Values
 
-To construct Table 1, I merged the household, individual, and nutrient files from the FoodAPS PUF and recreated the variables used by Courtemanche et al. (2019). Since the PUF omits several restricted-use fields, I had to:
+To construct Table 1, I merged the household, individual, and nutrient files from the FoodAPS PUF and recreated every analytic variable used by Courtemanche et al. (2019). Since the PUF omits several restricted-use fields, I had to:
 
 <ol>
 <li>Rebuild all household composition indicators (children under 5, elderly, number of children)</li>
@@ -89,7 +85,7 @@ Binary indicators such as Female, Obese, Rural, and Worked last week follow simp
 
 Because the HEI score is not included in the PUF, I calculated it manually following USDA scoring rules. This introduces some measurement error relative to the restricted files used by the authors.
 
-After preparing the dataset, I applied the  FoodAPS survey design (PSUs, strata, and household weights) and calculated weighted means and standard errors. My results follow the structure of Courtemanche et al. (2019), though some estimates differ due to PUF masking and HEI reconstruction.
+After preparing the analytic dataset, I applied the complex FoodAPS survey design (PSUs, strata, and household weights) and calculated weighted means and standard errors. My results follow the structure of Courtemanche et al. (2019), though some estimates differ due to PUF masking and HEI reconstruction.
 
 ```{r}
 # Aggregate household-level age variables
@@ -166,13 +162,11 @@ Table_1_data_frame <- household_1 %>%
 
 ## Construct The HEI
 
-Because the FoodAPS PUF does not include HEI-2010 scores, I reconstructed them using the FAH and FAFH item-level nutrient files. The USDA guidance recommends selecting edible-weight variables in a specific order; I followed this using coalesce() to ensure each item receives the first available gram-weight measure.
+Because the FoodAPS PUF does not include HEI-2010 scores, I reconstructed them using the FAH and FAFH item-level nutrient files. The USDA guidance recommends selecting edible-weight variables in a specific order; I followed this using coalesce() to ensure each item receives the best available gram-weight measure.
 
 I then merged the nutrient and item files, combined FAH and FAFH purchases, and aggregated nutrients to the household level. HEI components require density measures (e.g., cups per 1000 kcal, grams per 1000 kcal, fatty acid ratios, percent of calories from solid fats and added sugars), so I converted everything to per-1000-kcal units before applying USDA scoring cutoffs.
 
-This reconstruction follows the HEI-2010 methodology closely but cannot  match the  HEI variables available to the original authors. As a result, my HEI distribution has slightly higher variance, and coefficients in later regressions differ from the published results.
-
-Reference: https://ers.usda.gov/sites/default/files/_laserfiche/publications/87013/TB-1947.pdf?v=18216 
+This reconstruction follows the HEI-2010 methodology closely but cannot perfectly match the restricted HEI variables available to the original authors. As a result, my HEI distribution has slightly higher variance, and coefficients in later regressions differ somewhat from the published results.
 
 ```{r}
 fah_item_hei <- faps_fahitem
@@ -369,7 +363,7 @@ Table_1_data_frame <- Table_1_data_frame %>%
 
 
 ## TABLE 1 — Design
-To prepare Table 1, I first converted all variables to numeric form. I restricted the sample to households that consented to SNAP administrative matching and had income below 250% of the poverty guideline, mirroring the sample used in the original study. 
+To prepare Table 1, I first converted all variables to numeric form and removed a store-type string variable that I had already recoded. I restricted the sample to households that consented to SNAP administrative matching and had income below 250% of the poverty guideline, mirroring the sample used in the original study. I then required complete data for all analytic variables.
 
 
 ```{r}
@@ -390,7 +384,7 @@ Table1_sample <- Table_1_data_frame %>%
   distinct(hhnum, .keep_all = TRUE)
 ```
 
-After defining the  survey design with sampling weights, strata, and PSUs, I computed weighted means and standard errors for each variable using the survey package. My table replicates the structure and logic of Courtemanche et al. (2019), though some estimates  differ because I used only public-use FoodAPS data and constructed the HEI scores manually.: https://stats.oarc.ucla.edu/r/seminars/survey-data-analysis-with-r/ 
+After defining the  survey design with sampling weights, strata, and PSUs, I computed weighted means and standard errors for each variable using the survey package. My table replicates the structure and logic of Courtemanche et al. (2019), though some estimates necessarily differ because I used only public-use FoodAPS data and constructed the HEI scores manually.: https://stats.oarc.ucla.edu/r/seminars/survey-data-analysis-with-r/ 
 
 ```{r}
 
@@ -767,7 +761,7 @@ Table 3 reports survey-weighted SNAP participation using two PUF measures:
 
 SNAP_ADMIN — the administrative match
 
-SNAP_HH — a  measure combining admin and self-report
+SNAP_HH — a hybrid measure combining admin and self-report
 
 <ul>
   <li>SNAPNOWADMIN (PUF)
@@ -961,11 +955,11 @@ Tables 7 and 8 estimate the association between SNAP participation (and misrepor
 
 <ul>
   <li>SNAP_REPORT — self-reported participation</li>
-  <li>SNAP_ADMIN — admin match (masked; admin = 0 is “no” and “unmatched”)</li>
-  <li>SNAP_HH —  measure combining admin and self-report</li>
+  <li>SNAP_ADMIN — admin match (masked; admin = 0 conflates “no” and “unmatched”)</li>
+  <li>SNAP_HH — hybrid measure combining admin and self-report</li>
 </ul>
 
-Because the PUF lacks verified administrative histories, match-quality metrics, and benefit-month timing, all three measures contain noise. Measurement error is especially important for HEI, because I had to reconstruct HEI scores from raw nutrient files. This increases outcome variability and reduces statistical precision. 
+Because the PUF lacks verified administrative histories, match-quality metrics, and benefit-month timing, all three measures contain noise. Measurement error is especially important for HEI, because I had to reconstruct HEI scores from raw nutrient files. This increases outcome variability and reduces statistical precision.
 
 
 
@@ -1134,9 +1128,7 @@ modelsummary(
 
 ```
 
-The results from the FoodAPS Public Use File point in the same direction as the main FoodAPS results, but the effects are smaller and not as precise. This isn’t surprising because the PUF is more limited: some variables are masked or simplified, which reduces the variation we can use in the models.
 
-A few control variables also get dropped for collinearity in the PUF, which changes the model a bit and contributes to larger standard errors. Because of this, the SNAP coefficients still show the same general pattern higher SNAP participation is linked with more food insecurity and higher BMI/obesity, and lower diet quality but the estimates are weaker compared to the restricted use file.
 
 
 
@@ -1427,4 +1419,4 @@ modelsummary(
 )
 ```
 
-Across all six participation measures, the overall story is consistent: measures that capture actual SNAP participation like the admin variable and true positives show positive associations with food insecurity and BMI/obesity and negative associations with diet quality, closely matching the patterns in the main FoodAPS results, though the magnitudes are somewhat smaller. True negatives show the reverse, with lower food insecurity and lower BMI/obesity, which aligns with expectations. In contrast, the misclassification variables false positives, false negatives, and the misrepresentation measure—produce weaker or less stable estimates, with larger standard errors and some sign flips, reflecting the noise introduced when participation is misreported. Although the exact coefficient sizes differ from the published FoodAPS table, the direction and general interpretation remain the same, reinforcing the overall pattern linking SNAP participation with higher food insecurity, higher BMI, and lower HEI.
+
